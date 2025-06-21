@@ -5,4 +5,254 @@ library(tidyverse)
 source("GSVA.R")
 ```
 
+```{r}
+genes_of_interest <- c("CD8A", "IFNG", "GZMB", "TNF", "LCK", "SYK")
+
+# Check if all genes present
+all_genes <- c("UCP2", genes_of_interest)
+stopifnot(all(all_genes %in% rownames(STAD)))
+
+# Rank-transform and z-score all genes across samples
+#zranked_STAD <- t(apply(STAD, 1, function(x) as.numeric(rank(x))))
+
+# Extract z-scored ranks of UCP2 and other genes
+#ucp2_zrank <- zranked_STAD["UCP2", ]
+
+# Compute correlation between UCP2 and other genes using Pearson
+cor_results <- sapply(genes_of_interest, function(gene) {
+  cor(STAD["UCP2",], STAD[gene, ], method = "spearman")
+})
+
+cor_results
+
+```
+
+```{r}
+# Create data frame with log-transformed, z-scored UCP2 expression
+plot_df <- data.frame(
+  Sample = colnames(STAD),
+  UCP2 = scale(log(STAD["UCP2", ] + 1))
+)
+
+# Add other genes' log-transformed, z-scored expression
+for (gene in genes_of_interest) {
+  plot_df[[gene]] <- scale(log(STAD[gene, ] + 1))
+}
+
+# Pivot to long format for ggplot facetting
+plot_long <- plot_df %>%
+  tidyr::pivot_longer(cols = all_of(genes_of_interest), names_to = "Gene", values_to = "Expression")
+
+# Prepare correlation data frame
+cor_df <- data.frame(
+  Gene = names(cor_results),
+  r = cor_results
+) %>%
+  mutate(
+    label = paste0("\u03C1 = ", round(r, 3)),
+    x = -2,
+    y = 3
+  )
+
+# Plot
+ggplot(plot_long, aes(x = UCP2, y = Expression)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "dodgerblue") +
+  facet_wrap(~ Gene, scales = "free_y") +
+  labs(
+    title = "UCP2 vs Immune Genes mRNA Expression (Log+1, Z-scored)",
+    x = "UCP2 (log + 1, z-score)", y = "Gene (log + 1, z-score)"
+  ) +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_text(data = cor_df, aes(x = x, y = y, label = label), inherit.aes = FALSE, size = 3, fontface = "bold") +
+  theme_minimal()
+
+```
+
+```{r}
+# Create data frame with log-transformed, z-scored SERPINA9 expression
+plot_df <- data.frame(
+  Sample = colnames(STAD),
+  SERPINA9 = scale(log(STAD["SERPINA9", ] + 1))
+)
+
+# Add other genes' log-transformed, z-scored expression
+for (gene in genes_of_interest) {
+  plot_df[[gene]] <- scale(log(STAD[gene, ] + 1))
+}
+
+# Pivot to long format for ggplot facetting
+plot_long <- plot_df %>%
+  tidyr::pivot_longer(cols = all_of(genes_of_interest), names_to = "Gene", values_to = "Expression")
+
+cor_results <- sapply(genes_of_interest, function(gene) {
+  cor(STAD["SERPINA9",], STAD[gene, ], method = "spearman")
+})
+
+# Prepare correlation data frame
+cor_df <- data.frame(
+  Gene = names(cor_results),
+  r = cor_results
+) %>%
+  mutate(
+    label = paste0("\u03C1 = ", round(r, 3)),
+    x = -2,
+    y = 3
+  )
+
+# Plot
+ggplot(plot_long, aes(x = SERPINA9, y = Expression)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "dodgerblue") +
+  facet_wrap(~ Gene, scales = "free_y") +
+  labs(
+    title = "SERPINA9 vs Immune Genes mRNA Expression (Log+1, Z-scored)",
+    x = "SERPINA9 (log + 1, z-score)", y = "Gene (log + 1, z-score)"
+  ) +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_text(data = cor_df, aes(x = x, y = y, label = label), inherit.aes = FALSE, size = 3, fontface = "bold") +
+  theme_minimal()
+
+```
+```{r}
+# Create data frame with log-transformed, z-scored TBC1D10C expression
+plot_df <- data.frame(
+  Sample = colnames(STAD),
+  TBC1D10C = scale(log(STAD["TBC1D10C", ] + 1))
+)
+
+# Add other genes' log-transformed, z-scored expression
+for (gene in genes_of_interest) {
+  plot_df[[gene]] <- scale(log(STAD[gene, ] + 1))
+}
+
+# Pivot to long format for ggplot facetting
+plot_long <- plot_df %>%
+  tidyr::pivot_longer(cols = all_of(genes_of_interest), names_to = "Gene", values_to = "Expression")
+
+cor_results <- sapply(genes_of_interest, function(gene) {
+  cor(STAD["TBC1D10C",], STAD[gene, ], method = "spearman")
+})
+
+# Prepare correlation data frame
+cor_df <- data.frame(
+  Gene = names(cor_results),
+  r = cor_results
+) %>%
+  mutate(
+    label = paste0("\u03C1 = ", round(r, 3)),
+    x = -2,
+    y = 3
+  )
+
+# Plot
+ggplot(plot_long, aes(x = TBC1D10C, y = Expression)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "dodgerblue") +
+  facet_wrap(~ Gene, scales = "free_y") +
+  labs(
+    title = "TBC1D10C vs Immune Genes mRNA Expression (Log+1, Z-scored)",
+    x = "TBC1D10C (log + 1, z-score)", y = "Gene (log + 1, z-score)"
+  ) +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_text(data = cor_df, aes(x = x, y = y, label = label), inherit.aes = FALSE, size = 3, fontface = "bold") +
+  theme_minimal()
+
+```
+
+```{r}
+# Create data frame with log-transformed, z-scored CXCR5 expression
+plot_df <- data.frame(
+  Sample = colnames(STAD),
+  CXCR5 = scale(log(STAD["CXCR5", ] + 1))
+)
+
+# Add other genes' log-transformed, z-scored expression
+for (gene in genes_of_interest) {
+  plot_df[[gene]] <- scale(log(STAD[gene, ] + 1))
+}
+
+# Pivot to long format for ggplot facetting
+plot_long <- plot_df %>%
+  tidyr::pivot_longer(cols = all_of(genes_of_interest), names_to = "Gene", values_to = "Expression")
+
+cor_results <- sapply(genes_of_interest, function(gene) {
+  cor(STAD["CXCR5",], STAD[gene, ], method = "spearman")
+})
+
+# Prepare correlation data frame
+cor_df <- data.frame(
+  Gene = names(cor_results),
+  r = cor_results
+) %>%
+  mutate(
+    label = paste0("\u03C1 = ", round(r, 3)),
+    x = -2,
+    y = 3
+  )
+
+# Plot
+ggplot(plot_long, aes(x = CXCR5, y = Expression)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "dodgerblue") +
+  facet_wrap(~ Gene, scales = "free_y") +
+  labs(
+    title = "CXCR5 vs Immune Genes mRNA Expression (Log+1, Z-scored)",
+    x = "CXCR5 (log + 1, z-score)", y = "Gene (log + 1, z-score)"
+  ) +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_text(data = cor_df, aes(x = x, y = y, label = label), inherit.aes = FALSE, size = 3, fontface = "bold") +
+  theme_minimal()
+
+```
+```{r}
+# Create data frame with log-transformed, z-scored CD79B expression
+plot_df <- data.frame(
+  Sample = colnames(STAD),
+  CD79B = scale(log(STAD["CD79B", ] + 1))
+)
+
+# Add other genes' log-transformed, z-scored expression
+for (gene in genes_of_interest) {
+  plot_df[[gene]] <- scale(log(STAD[gene, ] + 1))
+}
+
+# Pivot to long format for ggplot facetting
+plot_long <- plot_df %>%
+  tidyr::pivot_longer(cols = all_of(genes_of_interest), names_to = "Gene", values_to = "Expression")
+
+cor_results <- sapply(genes_of_interest, function(gene) {
+  cor(STAD["CD79B",], STAD[gene, ], method = "spearman")
+})
+
+# Prepare correlation data frame
+cor_df <- data.frame(
+  Gene = names(cor_results),
+  r = cor_results
+) %>%
+  mutate(
+    label = paste0("\u03C1 = ", round(r, 3)),
+    x = -2,
+    y = 3
+  )
+
+# Plot
+ggplot(plot_long, aes(x = CD79B, y = Expression)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "dodgerblue") +
+  facet_wrap(~ Gene, scales = "free_y") +
+  labs(
+    title = "CD79B vs Immune Genes mRNA Expression (Log+1, Z-scored)",
+    x = "CD79B (log + 1, z-score)", y = "Gene (log + 1, z-score)"
+  ) +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_text(data = cor_df, aes(x = x, y = y, label = label), inherit.aes = FALSE, size = 3, fontface = "bold") +
+  theme_minimal()
+
+```
 

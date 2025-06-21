@@ -45,7 +45,7 @@ grep( pattern = 'illuminahiseq', x = ., value = TRUE) -> pathRNA
 readTCGA( path = pathRNA, dataType = 'rnaseq' ) -> my_data
 
 ######################################################
-map <- select(org.Hs.eg.db,keys(org.Hs.eg.db),"SYMBOL","ENTREZID")
+map <- AnnotationDbi::select(org.Hs.eg.db,keys(org.Hs.eg.db),"SYMBOL","ENTREZID")
 write.csv(map,file="EntrezID_SYMBOL.csv",row.names=F)
 
 row.names(my_data) <- my_data[,1]
@@ -107,12 +107,13 @@ abline(a=0,b=0,lty=3,lwd=2)
 
 dev.off()
 #########################################################Epigenetic members mutation
-Mut <- read.csv(file="I:\\Michael_MOSTProject\\cBioprotal\\STAD_Top50_non-silent mutation and CNV.csv",row.names=1)
+#Mut <- read.csv(file="I:\\Michael_MOSTProject\\cBioprotal\\STAD_Top50_non-silent mutation and CNV.csv",row.names=1)
 
 tsne_sample <- as.data.frame(tsne$Y)
 rownames(tsne_sample) <- sub("01A-.*","01",colnames(TES))
 
-KMT2D <- tsne_sample[rownames(tsne_sample)%in%rownames(Mut[Mut$KMT2D==1,]),]
+UCP2 <- tsne_sample[rownames(tsne_sample)%in%rownames(Mut[Mut$KMT2D==1,]),]
+
 KDM6A <- tsne_sample[rownames(tsne_sample)%in%rownames(Mut[Mut$KDM6A==1,]),]
 ARID1A <- tsne_sample[rownames(tsne_sample)%in%rownames(Mut[Mut$ARID1A==1,]),]
 KMT2C <- tsne_sample[rownames(tsne_sample)%in%rownames(Mut[Mut$KMT2C==1,]),]
@@ -177,11 +178,11 @@ tsne_sample <- as.data.frame(tsne$Y)
 rownames(tsne_sample) <- colnames(TES)
 selectdata <- as.data.frame(t(STAD))
 
-TargetGene <- tsne_sample[rownames(tsne_sample)%in%rownames(selectdata[selectdata$EHMT2>=quantile(selectdata$EHMT2,0.75),]),]
+TargetGene <- tsne_sample[rownames(tsne_sample)%in%rownames(selectdata[selectdata$UCP2>=quantile(selectdata$UCP2,0.75),]),]
 
 
 
-tiff(file="STAD_Tcell Responses_G9a(EHMT2).tiff",width=6, height=6, units="in", res=500)
+tiff(file="STAD_Tcell Responses_G9a(UCP2).tiff",width=6, height=6, units="in", res=500)
 plot(tsne$Y,main=paste("STAD (n=",nrow(tsne$Y),")",sep=""),xlab="tSNE 1",ylab="tSNE 2","cex.main"=2,"cex.lab"=1.5,pch=21,cex=2,col="black",bg=TEScolor,lwd=2)
 
 points(TargetGene$V1,TargetGene$V2,pch=21,cex=2,col="black",lwd=3)
@@ -198,11 +199,11 @@ AllES$ID <- rownames(AllES)
 LoES <- subset(AllES,AllES$TES <= quantile(AllES$TES, 0.25))
 HiES <- subset(AllES,AllES$TES >= quantile(AllES$TES, 0.75))
 
-LoES_STAD <- STADori[,colnames(STADori)%in%LoES$ID]
-HiES_STAD <- STADori[,colnames(STADori)%in%HiES$ID]
+LoES_STAD <- STAD[,colnames(STAD)%in%LoES$ID]
+HiES_STAD <- STAD[,colnames(STAD)%in%HiES$ID]
 
 DEGinput <- cbind(LoES_STAD,HiES_STAD)
-DEGgroup <- factor(c(rep("LoES",107),rep("HiES",107)))
+DEGgroup <- factor(c(rep("LoES",113),rep("HiES",113)))
 DEGlist <- DGEList(counts=DEGinput,genes=rownames(DEGinput),group=DEGgroup)
 
 egSYMBOL <- toTable(org.Hs.egSYMBOL)
@@ -230,6 +231,7 @@ write.csv(DEGresult,file="DEG_STAD_Hot-Cold.csv",row.names=F)
 Out <- as.data.frame(out)
 
 tiff(file="STAD_DEGselect.tiff",width=10, height=10, units="in", res=500)
+png("DEG_Hot_vs_Cold.png", width = 800, height = 600, res = 150)
 
 plot(Out$logCPM,Out$logFC,main="Differential Expressed Genes from Hot & Cold tumors",xlab="Log-transformed Expression",ylab="Log-transformed Fold Change","cex.main"=2,"cex.lab"=1.5,pch=1,cex=1,col="black")
 points(DEGresult[DEGresult$logFC>0,5],DEGresult[DEGresult$logFC>0,3],pch=16,cex=1,col="red")
